@@ -44,9 +44,12 @@ func main() {
 
 	//Creating a grcp connection to create a storage client
 	storageConnection, err := grpc.Dial(*storageAddress, grpc.WithInsecure())
-	defer func(storageConnection *grpc.ClientConn) {
-		_ = storageConnection.Close()
-	}(storageConnection)
+
+	if err != nil {
+		log.Fatalf("unable to create storage: %v", err)
+	}
+
+	defer storageConnection.Close()
 
 	//Creating the storage client
 	storageClient := storage.NewStorageServiceClient(storageConnection)
@@ -57,10 +60,6 @@ func main() {
 			intrastructure.NewItemMemoryRepository(),
 			storageClient),
 	)
-
-	if err != nil {
-		log.Fatalf("unable to create storage: %v", err)
-	}
 
 	// The TCP listener where the service will be allocated
 	listen, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
