@@ -2,6 +2,7 @@ package item_api
 
 import (
 	"context"
+	"github.com/google/uuid"
 
 	"github.com/ovargas/api-go/commons/v1"
 	"github.com/ovargas/api-go/item/v1"
@@ -25,14 +26,20 @@ func TestAll(t *testing.T) {
 
 	itemClient := item.NewItemServiceClient(conn)
 
+	itemFullTest(t, itemClient)
+}
+
+func itemFullTest(t *testing.T, itemClient item.ItemServiceClient) {
 	var itemId string
+
+	fileName := uuid.New().String() + ".txt"
 
 	t.Run("create", func(t *testing.T) {
 		itemCreated, err := itemClient.Create(context.TODO(), &item.CreateRequest{
 			Name:        "The Item",
 			Description: "A Description",
 			Image: &storage.File{
-				Name:      "text-file.txt",
+				Name:      fileName,
 				MediaType: "plain/text",
 				Content: &storage.File_Bytes{
 					Bytes: []byte("Hello World!!!"),
@@ -45,7 +52,7 @@ func TestAll(t *testing.T) {
 		assert.NotNil(t, itemCreated)
 		assert.Equal(t, "The Item", itemCreated.Name)
 		assert.Equal(t, "A Description", itemCreated.Description)
-		assert.Equal(t, "text-file.txt", itemCreated.ImageUrl)
+		assert.Equal(t, fileName, itemCreated.ImageUrl)
 
 		itemId = itemCreated.Id
 	})
@@ -56,7 +63,7 @@ func TestAll(t *testing.T) {
 		assert.NotNil(t, itemReturned)
 		assert.Equal(t, "The Item", itemReturned.Name)
 		assert.Equal(t, "A Description", itemReturned.Description)
-		assert.Equal(t, "text-file.txt", itemReturned.ImageUrl)
+		assert.Equal(t, fileName, itemReturned.ImageUrl)
 	})
 
 	t.Run("fetch", func(t *testing.T) {
@@ -70,4 +77,34 @@ func TestAll(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, itemReturned.Content)
 	})
+}
+
+func BenchmarkItem(b *testing.B) {
+
+	conn, err := grpc.Dial("localhost:10001", grpc.WithInsecure())
+
+	defer func(storageConnection *grpc.ClientConn) {
+		_ = storageConnection.Close()
+	}(conn)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	itemClient := item.NewItemServiceClient(conn)
+
+	for i := 0; i < b.N; i++ {
+		fileName := uuid.New().String() + ".txt"
+		_, _ = itemClient.Create(context.TODO(), &item.CreateRequest{
+			Name:        "The Item",
+			Description: "A Description",
+			Image: &storage.File{
+				Name:      fileName,
+				MediaType: "plain/text",
+				Content: &storage.File_Bytes{
+					Bytes: []byte("Hello World!!!"),
+				},
+			},
+		})
+	}
 }
