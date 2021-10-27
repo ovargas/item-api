@@ -1,4 +1,4 @@
-package server
+package service
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"net/url"
 )
 
-type server struct {
+type ItemService struct {
 	pb.UnimplementedItemServiceServer
 	repository    Repository
 	storageClient storage.StorageServiceClient
@@ -25,14 +25,14 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 }
 
-func New(repository Repository, storageClient storage.StorageServiceClient) *server {
-	return &server{
+func New(repository Repository, storageClient storage.StorageServiceClient) *ItemService {
+	return &ItemService{
 		repository:    repository,
 		storageClient: storageClient,
 	}
 }
 
-func (s *server) Get(ctx context.Context, request *pb.GetRequest) (*pb.Item, error) {
+func (s *ItemService) Get(ctx context.Context, request *pb.GetRequest) (*pb.Item, error) {
 	item, err := s.repository.Get(ctx, request.GetId())
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (s *server) Get(ctx context.Context, request *pb.GetRequest) (*pb.Item, err
 	return item.ToPB(), nil
 }
 
-func (s *server) Fetch(ctx context.Context, request *pb.FetchRequest) (*pb.FetchResponse, error) {
+func (s *ItemService) Fetch(ctx context.Context, request *pb.FetchRequest) (*pb.FetchResponse, error) {
 	page, err := s.repository.Fetch(ctx, domain.ItemCriteria{
 		Ids:         request.GetIds(),
 		Name:        request.GetName(),
@@ -61,7 +61,7 @@ func (s *server) Fetch(ctx context.Context, request *pb.FetchRequest) (*pb.Fetch
 	}, nil
 }
 
-func (s *server) Create(ctx context.Context, request *pb.CreateRequest) (*pb.Item, error) {
+func (s *ItemService) Create(ctx context.Context, request *pb.CreateRequest) (*pb.Item, error) {
 
 	buffer, _ := proto.Marshal(request)
 
@@ -93,7 +93,7 @@ func (s *server) Create(ctx context.Context, request *pb.CreateRequest) (*pb.Ite
 	return item.ToPB(), nil
 }
 
-func (s *server) Update(ctx context.Context, request *pb.UpdateRequest) (*emptypb.Empty, error) {
+func (s *ItemService) Update(ctx context.Context, request *pb.UpdateRequest) (*emptypb.Empty, error) {
 	item, err := s.repository.Get(ctx, request.GetId())
 
 	if err != nil {
@@ -112,7 +112,7 @@ func (s *server) Update(ctx context.Context, request *pb.UpdateRequest) (*emptyp
 
 	return &emptypb.Empty{}, err
 }
-func (s *server) Delete(ctx context.Context, request *pb.DeleteRequest) (*emptypb.Empty, error) {
+func (s *ItemService) Delete(ctx context.Context, request *pb.DeleteRequest) (*emptypb.Empty, error) {
 	err := s.repository.Delete(ctx, request.GetId())
 	return &emptypb.Empty{}, err
 }

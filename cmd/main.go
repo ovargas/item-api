@@ -8,7 +8,7 @@ import (
 	pb "github.com/ovargas/api-go/item/v1"
 	"github.com/ovargas/api-go/storage/v1"
 	"github.com/ovargas/item-api/internal/intrastructure"
-	"github.com/ovargas/item-api/internal/server"
+	"github.com/ovargas/item-api/internal/service"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"log"
@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	port           = flag.Int("port", 10001, "The server port")
-	storageAddress = flag.String("storage_address", "localhost:10000", "The storage server address in the format of host:port")
+	port           = flag.Int("port", 10001, "The service port")
+	storageAddress = flag.String("storage_address", "localhost:10000", "The storage service address in the format of host:port")
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 		}),
 	}
 
-	//Creating a gRCP server and registering the middlewares
+	//Creating a gRCP service and registering the middlewares
 	grpcServer := grpc.NewServer(grpc_middleware.WithUnaryServerChain(
 		grpc_logrus.UnaryServerInterceptor(logEntry, opts...),
 	))
@@ -53,7 +53,7 @@ func main() {
 
 	// Registering the storage service
 	pb.RegisterItemServiceServer(grpcServer,
-		server.New(
+		service.New(
 			intrastructure.NewItemMemoryRepository(),
 			storageClient),
 	)
@@ -69,9 +69,9 @@ func main() {
 	}
 	logger.Info("starting the service in the port ", *port)
 
-	//Start the server
+	//Start the service
 	err = grpcServer.Serve(listen)
 	if err != nil {
-		log.Fatalf("unable to start server: %v", err)
+		log.Fatalf("unable to start service: %v", err)
 	}
 }
