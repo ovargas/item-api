@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
-	pb "github.com/ovargas/api-go/item/v1"
+	"github.com/ovargas/api-go/item/v1"
 	"github.com/ovargas/api-go/storage/v1"
 	"github.com/ovargas/item-api/internal/intrastructure"
 	"github.com/ovargas/item-api/internal/service"
@@ -52,7 +52,7 @@ func main() {
 	storageClient := storage.NewStorageServiceClient(storageConnection)
 
 	// Registering the storage service
-	pb.RegisterItemServiceServer(grpcServer,
+	item.RegisterItemServiceServer(grpcServer,
 		service.New(
 			intrastructure.NewItemMemoryRepository(),
 			storageClient),

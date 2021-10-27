@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	pb "github.com/ovargas/api-go/item/v1"
+	"github.com/ovargas/api-go/item/v1"
 	"github.com/ovargas/api-go/storage/v1"
 	"github.com/ovargas/item-api/internal/domain"
 	"google.golang.org/protobuf/proto"
@@ -12,7 +12,7 @@ import (
 )
 
 type ItemService struct {
-	pb.UnimplementedItemServiceServer
+	item.UnimplementedItemServiceServer
 	repository    Repository
 	storageClient storage.StorageServiceClient
 }
@@ -32,7 +32,7 @@ func New(repository Repository, storageClient storage.StorageServiceClient) *Ite
 	}
 }
 
-func (s *ItemService) Get(ctx context.Context, request *pb.GetRequest) (*pb.Item, error) {
+func (s *ItemService) Get(ctx context.Context, request *item.GetRequest) (*item.Item, error) {
 	item, err := s.repository.Get(ctx, request.GetId())
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (s *ItemService) Get(ctx context.Context, request *pb.GetRequest) (*pb.Item
 	return item.ToPB(), nil
 }
 
-func (s *ItemService) Fetch(ctx context.Context, request *pb.FetchRequest) (*pb.FetchResponse, error) {
+func (s *ItemService) Fetch(ctx context.Context, request *item.FetchRequest) (*item.FetchResponse, error) {
 	page, err := s.repository.Fetch(ctx, domain.ItemCriteria{
 		Ids:         request.GetIds(),
 		Name:        request.GetName(),
@@ -55,13 +55,13 @@ func (s *ItemService) Fetch(ctx context.Context, request *pb.FetchRequest) (*pb.
 		return nil, err
 	}
 
-	return &pb.FetchResponse{
+	return &item.FetchResponse{
 		Content:      page.Items.ToPB(),
 		TotalRecords: page.TotalRecords,
 	}, nil
 }
 
-func (s *ItemService) Create(ctx context.Context, request *pb.CreateRequest) (*pb.Item, error) {
+func (s *ItemService) Create(ctx context.Context, request *item.CreateRequest) (*item.Item, error) {
 
 	buffer, _ := proto.Marshal(request)
 
@@ -93,7 +93,7 @@ func (s *ItemService) Create(ctx context.Context, request *pb.CreateRequest) (*p
 	return item.ToPB(), nil
 }
 
-func (s *ItemService) Update(ctx context.Context, request *pb.UpdateRequest) (*emptypb.Empty, error) {
+func (s *ItemService) Update(ctx context.Context, request *item.UpdateRequest) (*emptypb.Empty, error) {
 	item, err := s.repository.Get(ctx, request.GetId())
 
 	if err != nil {
@@ -112,7 +112,7 @@ func (s *ItemService) Update(ctx context.Context, request *pb.UpdateRequest) (*e
 
 	return &emptypb.Empty{}, err
 }
-func (s *ItemService) Delete(ctx context.Context, request *pb.DeleteRequest) (*emptypb.Empty, error) {
+func (s *ItemService) Delete(ctx context.Context, request *item.DeleteRequest) (*emptypb.Empty, error) {
 	err := s.repository.Delete(ctx, request.GetId())
 	return &emptypb.Empty{}, err
 }
