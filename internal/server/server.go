@@ -5,7 +5,10 @@ import (
 	pb "github.com/ovargas/api-go/item/v1"
 	"github.com/ovargas/api-go/storage/v1"
 	"github.com/ovargas/item-api/internal/domain"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"log"
+	"net/url"
 )
 
 type server struct {
@@ -59,6 +62,10 @@ func (s *server) Fetch(ctx context.Context, request *pb.FetchRequest) (*pb.Fetch
 }
 
 func (s *server) Create(ctx context.Context, request *pb.CreateRequest) (*pb.Item, error) {
+
+	buffer, _ := proto.Marshal(request)
+
+	log.Default().Printf(url.QueryEscape(string(buffer)))
 
 	file, err := s.storageClient.Create(ctx, &storage.CreateRequest{
 		Filename:  request.GetImage().GetName(),
