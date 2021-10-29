@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/google/uuid"
 
-	"github.com/ovargas/api-go/commons/v1"
 	"github.com/ovargas/api-go/item/v1"
 	"github.com/ovargas/api-go/storage/v1"
 	"github.com/stretchr/testify/assert"
@@ -64,18 +63,6 @@ func itemFullTest(t *testing.T, itemClient item.ItemServiceClient) {
 		assert.Equal(t, "The Item", itemReturned.Name)
 		assert.Equal(t, "A Description", itemReturned.Description)
 		assert.Equal(t, fileName, itemReturned.ImageUrl)
-	})
-
-	t.Run("fetch", func(t *testing.T) {
-		itemReturned, err := itemClient.Fetch(context.TODO(), &item.FetchRequest{
-			Description: "Description",
-			Page: &commons.Page{
-				Number: 1,
-				Size:   10,
-			},
-		})
-		assert.NoError(t, err)
-		assert.NotEmpty(t, itemReturned.Content)
 	})
 }
 

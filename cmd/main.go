@@ -11,6 +11,7 @@ import (
 	"github.com/ovargas/item-api/internal/service"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/backoff"
 	"log"
 	"net"
 	"time"
@@ -43,8 +44,18 @@ func main() {
 	))
 
 	//Creating a grcp connection to create a storage client
-	storageConnection, err := grpc.Dial(*storageAddress, grpc.WithInsecure())
-
+	storageConnection, err := grpc.Dial(*storageAddress,
+		grpc.WithInsecure(),
+		grpc.WithConnectParams(
+			grpc.ConnectParams{
+				Backoff:           backoff.Config{
+					BaseDelay:  1.0 * time.Second,
+					Multiplier: 1.6,
+					Jitter:     0.2,
+					MaxDelay:   5 * time.Second,
+				},
+				MinConnectTimeout: time.Second * 5,
+			}))
 	if err != nil {
 		log.Fatalf("unable to create storage: %v", err)
 	}
